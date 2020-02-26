@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # classification problem
-PYTHONPATH=. python3 trainer/classification_trainer/main.py --config /path/to/config --type classification
+PYTHONPATH=. python3.6 ./trainer/main.py --config ./configs/classification_config.yml --type classification

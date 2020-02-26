@@ -88,7 +88,7 @@ class Trainer:
         self.best_test_loss = AverageMeter()
         self.best_test_loss.update(np.array([np.inf]))
 
-        if self.configs.visdom_log_file.endswit('.log'):
+        if self.configs.visdom_log_file.endswith('.log'):
             self.visdom_log_file = self.configs.visdom_log_file
         else:
             self.visdom_log_file = os.path.join(
@@ -121,6 +121,7 @@ class Trainer:
             'title': 'epoch_losses',
             'legend': ['train_loss', 'val_loss']
         }
+        print("Trainer is initialized")
 
     def log(self, func):
         def wrapped(msg):
@@ -250,7 +251,7 @@ class Trainer:
             self.optimizer.zero_grad()
 
             pred_batch = self.model(data_batch)
-            if self.configs.loss_type == 'bce':
+            if self.configs.loss_name == 'BCELoss':
                 target_batch = target_batch.float()
                 cur_loss = self.criterion(pred_batch.squeeze(), target_batch)
             else:
@@ -271,15 +272,15 @@ class Trainer:
             target_batch = target_batch.to(self.device)
 
             pred_batch = self.model(data_batch)
-            if self.configs.loss_type == 'bce':
+            if self.configs.loss_name == 'BCELoss':
                 target_batch = target_batch.float()
                 cur_loss = self.criterion(pred_batch.squeeze(), target_batch)
             else:
                 cur_loss = self.criterion(pred_batch, target_batch)
-            if self.configs.loss_type == 'cce' or\
-                    self.configs.loss_type == 'focal_loss':
+            if self.configs.loss_name == 'CrossEntropyLoss' or\
+                    self.configs.loss_name == 'focal_loss':  # TODO focal loss
                 pred_batch = torch.nn.functional.softmax(pred_batch, dim=1)
-            elif self.configs.loss_type == 'bce':
+            elif self.configs.loss_name == 'BCELoss':
                 pred_batch = torch.sigmoid(pred_batch)
 
             self.on_batch_end_test(

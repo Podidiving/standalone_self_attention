@@ -4,8 +4,9 @@ from torch import nn
 
 def get_criterion(configs: Namespace):
     try:
-        return nn.__dict__[configs.loss_type](
-            configs.loss_params
+        loss_params = configs.loss_params or {}
+        return nn.__dict__[configs.loss_name](
+            **loss_params
         )
     except KeyError:
         raise Exception(

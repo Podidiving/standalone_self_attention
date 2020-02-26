@@ -15,9 +15,10 @@ def get_optimizer(
     :return:
     """
     try:
+        optimizer_params = configs.optimizer_params or {}
         return optim.__dict__[configs.optimizer_name](
             model.parameters(),
-            configs.optimizer_params
+            **optimizer_params
         )
     except KeyError:
         raise Exception(

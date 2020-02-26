@@ -1,24 +1,24 @@
 # general params
-device: cpu
+device: cuda:0
 trace: null  # if not null then path, where to save traced model
 checkpoint_out: null  # path, where to store your checkpoints
 log_file: null  # if you want logs to be saved to file, provide absolute path
 
 # configs for dataloader
-image_size: 224
-image_path_column: image_path
-target_column: target
+image_size: 32
+image_path_column: filepath
+target_column: label
 
 # configs for dataloader (train)
-root_prefix_train: /path/to/images
-in_csv_train: /path/to/csv/file
-batch_size_train: 8
+root_prefix_train: null
+in_csv_train: null
+batch_size_train: 64
 shuffle_train: True
 
 # configs for dataloader (test)
-root_prefix_test: /path/to/images
-in_csv_test: /path/to/csv/file
-batch_size_test: 16
+root_prefix_test: null
+in_csv_test: null
+batch_size_test: 128
 shuffle_test: False
 
 
@@ -28,7 +28,7 @@ resnet_type: attention  # one of attn, plain
 num_classes: 10
 in_places: 64  # keep default
 expansion: 4  # keep default
-stem_spatial_downsample: hard
+stem_spatial_downsample: soft  # hard (224x224) or soft (32x32)
 # if you want to customize your model
 block_name: null
 num_blocks: null
@@ -36,7 +36,7 @@ stem: False,
 
 
 # training params
-log_checkpoint: 5  # save checkpoint every epoch % log_checkpoint, if 0, save every epoch, just last checkpoint
+log_checkpoint: 15  # save checkpoint every epoch % log_checkpoint, if 0, save every epoch, just last checkpoint
 start_epoch: 0
 end_epoch: 100
 verbose: False
@@ -57,11 +57,11 @@ freeze: null  # if you want to freeze your layers during training (fine tune cas
 
 
 # loss params
-loss_type: bce
+loss_name: CrossEntropyLoss
 loss_params: null
 
 # lr scheduler params
-lr_scheduler_name: null
+lr_scheduler_name: ReduceLROnPlateau
 lr_scheduler_params: null
 
 # optimizer params
@@ -74,4 +74,4 @@ visdom_log_file: null
 visdom_env_name: null
 
 # logging
-log_batch_interval: 5  # How often log metrics
+log_batch_interval: 10  # How often log metrics
