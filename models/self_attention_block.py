@@ -78,7 +78,7 @@ class SelfAttentionBlock(BlockBaseClass):
 
     def reset_params(self):
         init.kaiming_normal_(self.__key.weight, mode='fan_out', nonlinearity='relu')
-        init.kaiming_normal_(self.__value.weight, mode='fan_out', nonlinearity='relu')
+        init.kaiming_normal_(self.__query.weight, mode='fan_out', nonlinearity='relu')
         init.kaiming_normal_(self.__value.weight, mode='fan_out', nonlinearity='relu')
 
         if self._bias:
