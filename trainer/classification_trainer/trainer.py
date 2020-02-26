@@ -368,7 +368,10 @@ class Trainer:
                 self.freeze_layers(epoch)
             self.train_epoch()
             self.test_epoch()
-            self.lr_scheduler.step()
+            if self.configs.lr_scheduler_name == 'ReduceLROnPlateau':
+                self.lr_scheduler.step(self.test_loss.avg)
+            else:
+                self.lr_scheduler.step()
 
             self.create_state()
             self.save_state()
