@@ -12,7 +12,8 @@ import models
 # Consider changing
 # data_utils.classifications.augmentations.create_train_augmentor
 # function
-from data_utils.сlassification import create_train_dataloader
+from data_utils.classification import create_train_dataloader
+from data_utils.classification import create_test_dataloader
 
 from trainer.trainer_utils import get_criterion
 from trainer.trainer_utils import get_optimizer
@@ -74,7 +75,7 @@ class Trainer:
         self.lr_scheduler = get_lr_scheduler(self.optimizer, self.configs)
         # data
         self.dataloader_train = create_train_dataloader(self.configs)
-        self.dataloader_test = None
+        self.dataloader_test = create_test_dataloader(self.configs)
         # utils
         self.state = None
         self.epoch = None
