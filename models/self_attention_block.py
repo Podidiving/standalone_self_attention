@@ -4,7 +4,14 @@ from torch.nn import functional as F
 import torch.nn.init as init
 
 
-class SelfAttentionBlock(nn.Module):
+from models.utils.helpers import check_dims
+from models.utils.helpers import BlockBaseClass
+
+
+class SelfAttentionBlock(BlockBaseClass):
+    """
+    Main class, that implements logic of attention block of the paper
+    """
     def __init__(
             self,
             in_channels: int,
@@ -15,32 +22,17 @@ class SelfAttentionBlock(nn.Module):
             groups: int = 1,
             bias: bool = False
     ) -> None:
-        super().__init__()
-        self._in_channels: int = in_channels
-        self._out_channels: int = out_channels
-        self._kernel_size: int = kernel_size
-        self._stride: int = stride
-        self._padding: int = padding
-        self._groups: int = groups
-        self._bias: bool = bias
+        super().__init__(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            groups,
+            bias
+        )
 
-        assert not self._out_channels % 2, \
-            f"number of out channels ({self._out_channels})"\
-            " must be divisible by 2"
-
-        assert not self._out_channels % self._groups, \
-            f"number of out channels ({self._out_channels})"\
-            f" must be divisible by number of groups ({self._groups})"
-
-        assert not self._in_channels % self._groups, \
-            f"number of in channels ({self._in_channels})"\
-            f" must be divisible by number of groups ({self._groups})"
-
-        # this assertion for embeddings
-        assert not (self._out_channels // self.groups) % 2, \
-            f"number of out channels ({self._out_channels})" \
-            f" divided by number of groups ({self.groups})" \
-            f" must be divisible by 2"
+        check_dims(self._out_channels, self._groups, self._in_channels)
 
         self.__h_embedding: nn.Parameter = nn.Parameter(
             torch.randn(
@@ -61,61 +53,40 @@ class SelfAttentionBlock(nn.Module):
             requires_grad=True
         )
 
-        self.__key:  nn.Conv2d = nn.Conv2d(
-            self._in_channels,
-            self._out_channels,
-            kernel_size=1,
-            bias=self._bias,
-            groups=self._groups
-        )
-        self.__query: nn.Conv2d = nn.Conv2d(
-            self._in_channels,
-            self._out_channels,
-            kernel_size=1,
-            bias=self._bias,
-            groups=self._groups
-        )
-        self.__value: nn.Conv2d = nn.Conv2d(
-            self._in_channels,
-            self._out_channels,
-            kernel_size=1,
-            bias=self._bias,
-            groups=self._groups
-        )
+        if self._bias:
+            self.__bias = nn.Parameter(
+                torch.randn(1, self._out_channels, 1, 1),
+                requires_grad=True
+            )
+
+        self.__key:  nn.Conv2d = self.__create_conv()
+        self.__query: nn.Conv2d = self.__create_conv()
+        self.__value: nn.Conv2d = self.__create_conv()
 
         self.reset_params()
 
-    def reset_parameters(self):
+    def __create_conv(self):
+        return nn.Conv2d(
+            self._in_channels,
+            self._out_channels,
+            kernel_size=1,
+            stride=1,
+            padding=0,
+            bias=False,
+            groups=self._groups
+        )
+
+    def reset_params(self):
         init.kaiming_normal_(self.__key.weight, mode='fan_out', nonlinearity='relu')
         init.kaiming_normal_(self.__value.weight, mode='fan_out', nonlinearity='relu')
         init.kaiming_normal_(self.__value.weight, mode='fan_out', nonlinearity='relu')
 
+        if self._bias:
+            bound = 1 / torch.sqrt(self._out_channels).item()
+            init.uniform_(self.__bias, -bound, bound)
+
         init.normal_(self.__w_embedding, 0, 1)
         init.normal_(self.__h_embedding, 0, 1)
-
-    @property
-    def in_channels(self):
-        return self._in_channels
-
-    @property
-    def out_channels(self):
-        return self._out_channels
-
-    @property
-    def kernel_size(self):
-        return self._kernel_size
-
-    @property
-    def stride(self):
-        return self._stride
-
-    @property
-    def padding(self):
-        return self._padding
-
-    @property
-    def groups(self):
-        return self._groups
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch, channels, height, width = x.shape
@@ -203,4 +174,7 @@ class SelfAttentionBlock(nn.Module):
 
         # -> [B, C_out, H, W]
         out = out.view(batch, self._out_channels, height, width)
+        if self._bias:
+            out += self.__bias
+
         return out
