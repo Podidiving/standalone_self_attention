@@ -11,6 +11,13 @@ def image_read(image_path: str):
     return np.array(Image.open(image_path))
 
 
+def image_read_one_channel(image_path: str):
+    return np.expand_dims(
+        np.array(Image.open(image_path)),
+        -1
+    )
+
+
 class ClassificationDataset(Dataset):
     def __init__(
             self,

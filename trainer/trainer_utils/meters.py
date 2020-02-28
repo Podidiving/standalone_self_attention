@@ -36,13 +36,8 @@ class ROCMeter(object):
         self.output = np.ones(0)
 
     def update(self, target, output):
-        # If we use cross-entropy
-        if len(output.shape) > 1 and output.shape[1] > 1:
-            output = output[:, 1]
-        elif len(output.shape) > 1 and output.shape[1] == 1:
-            output = output[:, 0]
         self.target = np.hstack([self.target, target])
-        self.output = np.hstack([self.output, output])
+        self.output = np.hstack([self.output, output.argmax(1)])
 
     def get_tpr(self, fixed_fpr):
         fpr, tpr, thr = roc_curve(self.target, self.output)
@@ -51,9 +46,9 @@ class ROCMeter(object):
             return 0.0
         return tpr_filtered[-1]
 
-    def get_accuracy(self, thr=0.5):
+    def get_accuracy(self):
         acc = accuracy_score(self.target,
-                             self.output >= thr)
+                             self.output)
         return acc
 
     def get_top_hard_examples(self, top_n=10):

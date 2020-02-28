@@ -22,6 +22,7 @@ class ClassificationModel(nn.Module):
             in_places: int = 64,
             expansion: int = 4,
             num_classes: int = 1000,
+            one_channel: bool = False
     ):
         super().__init__()
         self.encoder = ModelEncoder(
@@ -30,7 +31,8 @@ class ClassificationModel(nn.Module):
             stem,
             stem_spatial_downsample,
             in_places,
-            expansion
+            expansion,
+            one_channel
         )
         self.dense = nn.Linear(512 * expansion, num_classes)
 
@@ -47,6 +49,7 @@ def resnet26_plain(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [1, 2, 4, 1],
@@ -56,6 +59,7 @@ def resnet26_plain(
         in_places=in_places,
         expansion=expansion,
         num_classes=num_classes,
+        one_channel=one_channel
     )
 
 
@@ -65,6 +69,7 @@ def resnet26_attention(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [1, 2, 4, 1],
@@ -73,7 +78,8 @@ def resnet26_attention(
         stem_spatial_downsample=stem_spatial_downsample,
         in_places=in_places,
         expansion=expansion,
-        num_classes=num_classes
+        num_classes=num_classes,
+        one_channel=one_channel
     )
 
 
@@ -82,6 +88,7 @@ def resnet38_plain(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [2, 3, 5, 2],
@@ -91,6 +98,7 @@ def resnet38_plain(
         in_places=in_places,
         expansion=expansion,
         num_classes=num_classes,
+        one_channel=one_channel
     )
 
 
@@ -100,6 +108,7 @@ def resnet38_attention(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [2, 3, 5, 2],
@@ -108,7 +117,8 @@ def resnet38_attention(
         stem_spatial_downsample=stem_spatial_downsample,
         in_places=in_places,
         expansion=expansion,
-        num_classes=num_classes
+        num_classes=num_classes,
+        one_channel=one_channel
     )
 
 
@@ -117,6 +127,7 @@ def resnet50_plain(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [3, 4, 6, 3],
@@ -126,6 +137,7 @@ def resnet50_plain(
         in_places=in_places,
         expansion=expansion,
         num_classes=num_classes,
+        one_channel=one_channel
     )
 
 
@@ -135,6 +147,7 @@ def resnet50_attention(
         num_classes: int = 1000,
         in_places: int = 64,
         expansion: int = 4,
+        one_channel: bool = False
 ):
     return ClassificationModel(
         [3, 4, 6, 3],
@@ -143,5 +156,6 @@ def resnet50_attention(
         stem_spatial_downsample=stem_spatial_downsample,
         in_places=in_places,
         expansion=expansion,
-        num_classes=num_classes
+        num_classes=num_classes,
+        one_channel=one_channel
     )

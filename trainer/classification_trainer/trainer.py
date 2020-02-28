@@ -31,15 +31,15 @@ def create_model_from_configs(configs_: Namespace):
                 configs_.num_blocks is not None and
                 type(configs_.num_blocks) is list and
                 len(configs_.block_name) == len(configs_.num_blocks))
-
         return models.ClassificationModel(
             configs_.num_blocks,
             configs_.block_name,
-            configs_.stem,
-            configs_.stem_spatial_downsample,
-            configs_.in_places,
-            configs_.expansion,
-            configs_.num_classes
+            stem=configs_.stem,
+            stem_spatial_downsample=configs_.stem_spatial_downsample,
+            in_places=configs_.in_places,
+            expansion=configs_.expansion,
+            num_classes=configs_.num_classes,
+            one_channel=configs_.one_channel
         )
 
     name = _create_model_name()
@@ -48,7 +48,8 @@ def create_model_from_configs(configs_: Namespace):
             stem_spatial_downsample=configs_.stem_spatial_downsample,
             num_classes=configs_.num_classes,
             in_places=configs_.in_places,
-            expansion=configs_.expansion
+            expansion=configs_.expansion,
+            one_channel=configs_.one_channel
         )
     except KeyError:
         raise Exception(
@@ -109,11 +110,11 @@ class Trainer:
             'legend': ['train_loss', 'test_loss']
         }
 
-        self.vis_tpr_opts = {
+        self.vis_acc_opts = {
             'xlabel': 'epoch',
-            'ylabel': 'tpr',
-            'title': 'val_tpr',
-            'legend': ['tpr@fpr10-2', 'tpr@fpr10-3', 'tpr@fpr10-4']
+            'ylabel': 'acc',
+            'title': 'val_acc',
+            'legend': ['acc@0.5']
         }
 
         self.vis_epochloss_opts = {
@@ -181,9 +182,7 @@ class Trainer:
         out_test += loss_i_string
 
         out_test += '\nTest:  '
-        metrics_i_string = 'TPR@FPR=10-2: {:.4f}\t'.format(self.test_metrics.get_tpr(0.01))
-        metrics_i_string += 'TPR@FPR=10-3: {:.4f}\t'.format(self.test_metrics.get_tpr(0.001))
-        metrics_i_string += 'TPR@FPR=10-4: {:.4f}\t'.format(self.test_metrics.get_tpr(0.0001))
+        metrics_i_string = 'Accuracy: {:.4f}\t'.format(self.test_metrics.get_accuracy())
         out_test += metrics_i_string
 
         is_best = 'Best ' if self.best_epoch else ''
@@ -203,19 +202,11 @@ class Trainer:
                       update='append')
         self.vis.update_window_opts(win='epoch_losses', opts=self.vis_epochloss_opts)
 
-        self.vis.line([self.test_metrics.get_tpr(0.01)], [x_value],
-                      name='tpr@fpr10-2',
-                      win='val_tpr',
+        self.vis.line([self.test_metrics.get_accuracy()], [x_value],
+                      name='acc@0.5',
+                      win='val_acc',
                       update='append')
-        self.vis.line([self.test_metrics.get_tpr(0.001)], [x_value],
-                      name='tpr@fpr10-3',
-                      win='val_tpr',
-                      update='append')
-        self.vis.line([self.test_metrics.get_tpr(0.0001)], [x_value],
-                      name='tpr@fpr10-4',
-                      win='val_tpr',
-                      update='append')
-        self.vis.update_window_opts(win='val_tpr', opts=self.vis_tpr_opts)
+        self.vis.update_window_opts(win='val_acc', opts=self.vis_acc_opts)
 
     def on_epoch_end(self):
         self.log_epoch()

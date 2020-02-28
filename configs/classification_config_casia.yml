@@ -1,23 +1,24 @@
 # general params
 device: cuda:0
 trace: null  # if not null then path, where to save traced model
-checkpoint_out: /notebook/model_logs/cifar-10-logs/checkpoints  # path, where to store your checkpoints
-log_file: /notebook/model_logs/cifar-10-logs/checkpoints/logs.txt  # if you want logs to be saved to file, provide absolute path
+checkpoint_out: /notebook/model_logs/handwritten-casia-logs/checkpoints  # path, where to store your checkpoints
+log_file: /notebook/model_logs/handwritten-casia-logs/checkpoints/logs.txt  # if you want logs to be saved to file, provide absolute path
 
 # configs for dataloader
 image_size: 32
 image_path_column: filepath
 target_column: label
+one_channel: True  # also can be passed to model
 
 # configs for dataloader (train)
-root_prefix_train: /notebook/datasets
-in_csv_train: /notebook/datasets/cifar-10-train.csv
+root_prefix_train: /notebook/datasets/characters/
+in_csv_train: /notebook/datasets/characters/csv/Gnt1.0TrainPart1_.csv
 batch_size_train: 64
 shuffle_train: True
 
 # configs for dataloader (test)
-root_prefix_test: /notebook/datasets/
-in_csv_test: /notebook/datasets/cifar-10-test.csv
+root_prefix_test: /notebook/datasets/characters/
+in_csv_test: /notebook/datasets/characters/csv/Gnt1.0Test_.csv
 batch_size_test: 128
 shuffle_test: False
 
@@ -25,18 +26,19 @@ shuffle_test: False
 # configs for creating model
 resnet_num: 26  # one of 26, 38, 50
 resnet_type: attention  # one of attn, plain
-num_classes: 10
+num_classes: 4037
 in_places: 64  # keep default
 expansion: 4  # keep default
 stem_spatial_downsample: soft  # hard (224x224) or soft (32x32)
 # if you want to customize your model
 block_name: null
 num_blocks: null
-stem: False,
+stem: False
+
 
 
 # training params
-log_checkpoint: 0  # save checkpoint every epoch % log_checkpoint, if 0, save every epoch, just last checkpoint
+log_checkpoint: 10  # save checkpoint every epoch % log_checkpoint, if 0, save every epoch, just last checkpoint
 start_epoch: 0
 end_epoch: 100
 verbose: False
@@ -70,8 +72,8 @@ optimizer_params: null
 
 # visualization (with Visdom)
 visdom_port: 6006
-visdom_log_file: /notebook/model_logs/cifar-10-logs/checkpoints/visdom.log
-visdom_env_name: cifar_10_test
+visdom_log_file: /notebook/model_logs/handwritten-casia-logs/checkpoints/visdom.log
+visdom_env_name: handwritten_casia_logs
 
 # logging
 log_batch_interval: 10  # How often log metrics

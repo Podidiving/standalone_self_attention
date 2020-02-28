@@ -17,9 +17,10 @@ def pre_transforms(image_size=224):
     return result
 
 
-def hard_transforms():
+def hard_transforms(
+        one_channel: bool = False
+):
     result = [
-        # Random shifts, stretches and turns with a 50% probability
         albu.ShiftScaleRotate(
             shift_limit=0.1,
             scale_limit=0.1,
@@ -28,24 +29,27 @@ def hard_transforms():
             p=0.5
         ),
         albu.IAAPerspective(scale=(0.02, 0.05), p=0.3),
-        # Random brightness / contrast with a 30% probability
-        albu.RandomBrightnessContrast(
-            brightness_limit=0.2, contrast_limit=0.2, p=0.3
-        ),
         # Random gamma changes with a 30% probability
         albu.RandomGamma(gamma_limit=(85, 115), p=0.3),
-        # Randomly changes the hue, saturation, and color value of the input image
-        albu.HueSaturationValue(p=0.3),
-        albu.ImageCompression(quality_lower=80),
     ]
+    if not one_channel:
+        result = result + [
+            albu.RandomBrightnessContrast(
+                brightness_limit=0.2, contrast_limit=0.2, p=0.3
+            ),
+            albu.ImageCompression(quality_lower=80),
+            albu.HueSaturationValue(p=0.3),
+        ]
 
     return result
 
 
-def post_transforms():
+def post_transforms(one_channel: bool = False):
     # we use ImageNet image normalization
     # and convert it to torch.Tensor
-    return [albu.Normalize(), ToTensor()]
+    mean = [0.485, 0.456, 0.406] if not one_channel else [0.688438]
+    std = [0.229, 0.224, 0.225] if not one_channel else [0.367651]
+    return [albu.Normalize(mean=mean, std=std), ToTensor()]
 
 
 def compose(transforms_to_compose):
@@ -67,18 +71,24 @@ class ImageAugmentor:
         return self.transforms(image=image)['image']
 
 
-def create_train_augmentor(image_size=224):
+def create_train_augmentor(
+        image_size: int = 224,
+        one_channel: bool = False
+):
     transforms = compose([
         pre_transforms(image_size=image_size),
-        hard_transforms(),
-        post_transforms()
+        hard_transforms(one_channel),
+        post_transforms(one_channel)
     ])
     return ImageAugmentor(transforms)
 
 
-def create_test_augmentor(image_size=224):
+def create_test_augmentor(
+        image_size: int = 224,
+        one_channel: bool = False
+):
     transforms = compose([
         pre_transforms(image_size=image_size),
-        post_transforms()
+        post_transforms(one_channel)
     ])
     return ImageAugmentor(transforms)

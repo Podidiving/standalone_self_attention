@@ -17,7 +17,8 @@ class ModelEncoder(nn.Module):
             stem: bool = False,
             stem_spatial_downsample: str = 'soft',
             in_places: int = 64,
-            expansion: int = 4
+            expansion: int = 4,
+            one_channel: bool = False
     ):
         super().__init__()
         assert stem_spatial_downsample in ['soft', 'hard'], \
@@ -26,19 +27,25 @@ class ModelEncoder(nn.Module):
             f" big input size, like IMAGENET"
         self.in_places = in_places
         self.expansion = expansion
-
+        self.first_channels = 1 if one_channel else 3
         if stem:
             raise NotImplementedError
         else:
             if stem_spatial_downsample == 'soft':
                 self.init = nn.Sequential(
-                    nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
+                    nn.Conv2d(
+                        self.first_channels, 64, kernel_size=3,
+                        stride=1, padding=1, bias=False
+                    ),
                     nn.BatchNorm2d(64),
                     nn.ReLU(),
                 )
             else:
                 self.init = nn.Sequential(
-                    nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
+                    nn.Conv2d(
+                        self.first_channels, 64, kernel_size=7,
+                        stride=2, padding=3, bias=False
+                    ),
                     nn.BatchNorm2d(64),
                     nn.ReLU(),
                     nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
