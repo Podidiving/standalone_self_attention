@@ -44,7 +44,7 @@ stem: False
 prev_epoch: null  # In case you stopped training and want resume in the same visdom env
 visdom_port: 6006
 visdom_log_file: /notebook/model_logs/handwritten-casia-logs/_checkpoints/visdom.log
-visdom_env_name: handwritten_casia_logs_0
+visdom_env_name: _handwritten_casia_logs
 
 # logging
 log_batch_interval: 10  # How often log metrics

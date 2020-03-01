@@ -2,6 +2,7 @@ from argparse import Namespace
 from tqdm import tqdm
 import numpy as np
 import os
+import time
 
 import torch
 
@@ -82,6 +83,9 @@ class Trainer:
         self.epoch = None
         self.training = None
         self.best_epoch = None
+
+        self.epoch_start_time = None
+        self.epoch_end_time = None
 
         # metrics
         self.train_loss = AverageMeter()
@@ -199,7 +203,16 @@ class Trainer:
         is_best = 'Best ' if self.best_epoch else ''
         out_res = is_best + 'Epoch {} results:\n'.format(self.epoch) + out_train + '\n' + out_test + '\n'
 
+        time_ = int(self.epoch_end_time - self.epoch_start_time)
+        h = time_ // 60 // 60
+        m = time_ // 60 % 60
+        s = time_ % 60
+
+        time_str = f'\nHours: {h}\tMinutes: {m}\tSeconds: {s}\n'
+
+        self.log(print)(metrics_i_string)
         self.log(print)(out_res)
+        self.log(print)(time_str)
 
     def vislog_epoch(self):
         x_value = self.epoch
@@ -384,6 +397,7 @@ class Trainer:
         if self.configs.verbose:
             range_ = tqdm(range_)
 
+        self.epoch_start_time = time.time()
         for epoch in range_:
             self.epoch = epoch
             if self.configs.freeze:
@@ -397,6 +411,7 @@ class Trainer:
 
             self.create_state()
             self.save_state()
+            self.epoch_end_time = time.time()
             self.on_epoch_end()
 
     def trace(self):
