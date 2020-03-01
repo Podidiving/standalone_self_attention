@@ -1,0 +1,50 @@
+# general params
+device: cuda:0
+trace: null  # if not null then path, where to save traced model
+checkpoint_out: /notebook/model_logs/handwritten-casia-logs/_checkpoints  # path, where to store your checkpoints
+log_file: /notebook/model_logs/handwritten-casia-logs/_checkpoints/logs.txt  # if you want logs to be saved to file, provide absolute path
+
+# configs for dataloader
+image_size: 32
+image_path_column: filepath
+target_column: label0
+one_channel: True  # also can be passed to model
+
+# configs for dataloader (train)
+root_prefix_train: /notebook/datasets/characters/
+in_csv_train:  # You can specify multiple datasets. They all be used during training
+  - /notebook/datasets/characters/csv/_Gnt1.0TrainPart1_.csv
+  - /notebook/datasets/characters/csv/_Gnt1.0TrainPart2_.csv
+  - /notebook/datasets/characters/csv/_Gnt1.0TrainPart3_.csv
+batch_size_train: 64
+shuffle_train: True
+
+# configs for dataloader (test)
+root_prefix_test: /notebook/datasets/characters/
+in_csv_test:  # you can specify multiple datasets. They all be used during validation
+  - /notebook/datasets/characters/csv/_Gnt1.0Test_.csv
+batch_size_test: 128
+shuffle_test: True
+
+
+# configs for creating model
+resnet_num: 26  # one of 26, 38, 50
+resnet_type: attention  # one of attn, plain
+num_classes: 4037
+in_places: 64  # keep default
+expansion: 4  # keep default
+stem_spatial_downsample: soft  # hard (224x224) or soft (32x32)
+# if you want to customize your model
+block_name: null
+num_blocks: null
+stem: False
+
+
+# visualization (with Visdom)
+prev_epoch: null  # In case you stopped training and want resume in the same visdom env
+visdom_port: 6006
+visdom_log_file: /notebook/model_logs/handwritten-casia-logs/_checkpoints/visdom.log
+visdom_env_name: handwritten_casia_logs_0
+
+# logging
+log_batch_interval: 10  # How often log metrics

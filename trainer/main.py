@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from argparse import Namespace
+from typing import List
 import os
 
 import safitty
@@ -7,19 +8,24 @@ import safitty
 from trainer.classification_trainer.trainer import Trainer as ClfTrainer
 
 
-def read_configs(conf_path):
-    assert os.path.isfile(conf_path)
-    assert conf_path.endswith('yml')
-    return Namespace(**safitty.load(conf_path))
+def read_configs(conf_paths: List[str]) -> Namespace:
+    assert type(conf_paths) is list
+    configs_ = {}
+    for conf_path in conf_paths:
+        assert os.path.isfile(conf_path)
+        assert conf_path.endswith('yml')
+        cur_configs = safitty.load(conf_path)
+        configs_.update(cur_configs)
+    return Namespace(**configs_)
 
 
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(
-        '--config',
-        type=str,
+        '--configs',
+        nargs='+',
         required=True,
-        help='Path to config file'
+        help='Paths to configs file'
     )
     parser.add_argument(
         '--type',
@@ -50,7 +56,7 @@ def makedirs_if_needed(configs_: Namespace):
 if __name__ == '__main__':
     args = parse_args()
     type_ = args.type
-    configs = read_configs(args.config)
+    configs = read_configs(args.configs)
     makedirs_if_needed(configs)
     if type_ == 'classification':
         print('Classification Trainer is about to get started')

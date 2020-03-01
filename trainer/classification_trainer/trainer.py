@@ -17,7 +17,7 @@ from data_utils.classification import create_test_dataloader
 
 from trainer.trainer_utils import get_criterion
 from trainer.trainer_utils import get_optimizer
-from trainer.trainer_utils import AverageMeter, ROCMeter
+from trainer.trainer_utils import AverageMeter, ACCMeter
 from trainer.trainer_utils import get_lr_scheduler
 
 
@@ -86,9 +86,13 @@ class Trainer:
         # metrics
         self.train_loss = AverageMeter()
         self.test_loss = AverageMeter()
-        self.test_metrics = ROCMeter()
+        self.test_metrics = ACCMeter()
+        self.train_metrics = ACCMeter()
         self.best_test_loss = AverageMeter()
         self.best_test_loss.update(np.array([np.inf]))
+
+        if self.configs.prev_epoch is not None:
+            self.epoch = self.configs.prev_epoch
 
         if self.configs.visdom_log_file.endswith('.log'):
             self.visdom_log_file = self.configs.visdom_log_file
@@ -114,7 +118,14 @@ class Trainer:
             'xlabel': 'epoch',
             'ylabel': 'acc',
             'title': 'val_acc',
-            'legend': ['acc@0.5']
+            'legend': ['acc']
+        }
+
+        self.vis_acc_opts_train = {
+            'xlabel': 'epoch',
+            'ylabel': 'acc',
+            'title': 'train_acc',
+            'legend': ['acc']
         }
 
         self.vis_epochloss_opts = {
@@ -203,17 +214,29 @@ class Trainer:
         self.vis.update_window_opts(win='epoch_losses', opts=self.vis_epochloss_opts)
 
         self.vis.line([self.test_metrics.get_accuracy()], [x_value],
-                      name='acc@0.5',
+                      name='acc',
                       win='val_acc',
                       update='append')
+        self.vis.line([self.train_metrics.get_accuracy()], [x_value],
+                      name='acc',
+                      win='train_acc',
+                      update='append')
+        self.vis.update_window_opts(win='train_acc', opts=self.vis_acc_opts)
         self.vis.update_window_opts(win='val_acc', opts=self.vis_acc_opts)
 
     def on_epoch_end(self):
         self.log_epoch()
         self.vislog_epoch()
 
-    def on_batch_end_train(self, batch_idx: int, loss_: float):
+    def on_batch_end_train(
+            self,
+            batch_idx: int,
+            target_batch: np.array,
+            pred_batch: np.array,
+            loss_: float,
+    ):
         self.train_loss.update(loss_)
+        self.train_metrics.update(target_batch, pred_batch)
         self.log_batch(batch_idx)
 
     def on_batch_end_test(
@@ -228,6 +251,7 @@ class Trainer:
         self.log_batch(batch_idx)
 
     def train_epoch(self):
+        self.train_metrics.reset()
         self.model.train()
         self.training = True
         torch.set_grad_enabled(self.training)
@@ -250,7 +274,12 @@ class Trainer:
                 cur_loss = self.criterion(pred_batch, target_batch)
             cur_loss.backward()
             self.optimizer.step()
-            self.on_batch_end_train(batch_idx, cur_loss.detach().cpu().item())
+            self.on_batch_end_train(
+                batch_idx,
+                target_batch.detach().cpu().numpy(),
+                pred_batch.detach().cpu().numpy(),
+                cur_loss.detach().cpu().item()
+            )
 
     def test_epoch(self):
         self.training = False
@@ -294,6 +323,8 @@ class Trainer:
             try:
                 self.model.load_state_dict(loaded['model_state_dict'])
                 self.optimizer.load_state_dict(loaded['optimizer'])
+                if self.epoch is None:
+                    self.epoch = int(loaded['epoch'])
             except KeyError:
                 self.model.load_state_dict(loaded)
             self.log(print)(f"Loaded checkpoint from {self.configs.resume}")
@@ -347,7 +378,7 @@ class Trainer:
         if self.configs.resume:
             self.resume()
 
-        start_epoch = self.configs.start_epoch
+        start_epoch = self.configs.start_epoch if self.epoch is None else self.epoch
         end_epoch = self.configs.end_epoch
         range_ = range(start_epoch, end_epoch)
         if self.configs.verbose:

@@ -1,0 +1,38 @@
+# training params
+log_checkpoint: 10  # save checkpoint every epoch % log_checkpoint, if 0, save every epoch, just last checkpoint
+start_epoch: 8
+end_epoch: 17
+verbose: False
+
+resume: /notebook/model_logs/handwritten-casia-logs/checkpoints/model_best.pth # if you want to resume your model from checkpoint, provide absolute path
+freeze: null  # if you want to freeze your layers during training (fine tune case)
+# example
+# first 11 epochs will be frozen everything, except last layer
+# epochs 11-13 will be frozen everything, except last 2 layers
+# on epoch 14 will be frozen everything, except last 3 layers
+# on epoch 15 will be frozen only last 3 layers
+# please, provide epochs in ascending order
+#freeze:
+#  - 10: 1
+#  - 13: 2
+#  - 14: [0, 1, 2, 3]  # may be 0
+#  - 15: [-1, -2, -3]
+
+
+# loss params
+loss_name: CrossEntropyLoss
+loss_params: null
+
+# lr scheduler params
+lr_scheduler_name: StepLR
+lr_scheduler_params:
+  step_size: 2
+  gamma: 0.6
+
+# optimizer params
+optimizer_name: RAdam
+optimizer_params:
+  lr: 0.0001
+
+# visualization (with Visdom)
+prev_epoch: 8  # In case you stopped training and want resume in the same visdom env

@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.metrics import roc_curve, accuracy_score
+
+from sklearn.metrics import accuracy_score
 
 
 class AverageMeter(object):
@@ -24,8 +25,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-class ROCMeter(object):
-    """Compute TPR with fixed FPR"""
+class ACCMeter(object):
 
     def __init__(self):
         self.target = np.ones(0)
@@ -38,13 +38,6 @@ class ROCMeter(object):
     def update(self, target, output):
         self.target = np.hstack([self.target, target])
         self.output = np.hstack([self.output, output.argmax(1)])
-
-    def get_tpr(self, fixed_fpr):
-        fpr, tpr, thr = roc_curve(self.target, self.output)
-        tpr_filtered = tpr[fpr <= fixed_fpr]
-        if len(tpr_filtered) == 0:
-            return 0.0
-        return tpr_filtered[-1]
 
     def get_accuracy(self):
         acc = accuracy_score(self.target,

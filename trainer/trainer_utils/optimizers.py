@@ -2,6 +2,8 @@ from argparse import Namespace
 from torch import nn
 from torch import optim
 
+from catalyst.contrib.nn import optimizers
+
 
 def get_optimizer(
         model: nn.Module,
@@ -21,6 +23,13 @@ def get_optimizer(
             **optimizer_params
         )
     except KeyError:
-        raise Exception(
-            'Unknown optimizer type'
-        )
+        try:
+            optimizer_params = configs.optimizer_params or {}
+            return optimizers.__dict__[configs.optimizer_name](
+                model.parameters(),
+                **optimizer_params
+            )
+        except KeyError:
+            raise Exception(
+                'Unknown optimizer type'
+            )
